@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 # Load config
 . config.sh
 
@@ -83,20 +81,12 @@ apt-get update
 apt-get install linux-xanmod -y
 
 # Setup acme.sh
-sudo -u "$sbs_subuser" bash -c : && _runas="sudo -u $sbs_subuser"
-$_runas bash<<EOF
-  # Certificates
-  curl https://get.acme.sh | sh -s email=$sbs_email
-  echo "export CF_Key=\"$sbs_cf_key\"" >> ~/.acme.sh/account.conf
-  echo "export CF_Email=\"$sbs_email\"" >> ~/.acme.sh/account.conf
+sudo -u $sbs_subuser \
+  curl https://get.acme.sh | sh -s email=$sbs_email && \
   ~/.acme.sh/acme.sh --issue --dns dns_cf -d doujinshiman.ga -d beta.doujinshiman.ga
 
-  # Cron
-  crontab -l > ~/.cronjobs
-  echo "0 0 * * * \"/home/$sbs_subuser/.acme.sh\"/acme.sh --cron --home \"/home/$sbs_subuser/.acme.sh\" > /dev/null" >> ~/.cronjobs
-  cron ~/.cronjobs
-  rm -f ~/.cronjobs
-EOF
+echo "export CF_Key=\"$sbs_cf_key\"" >> $sbs_subuser_home/.acme.sh/account.conf
+echo "export CF_Email=\"$sbs_email\"" >> $sbs_subuser_home/.acme.sh/account.conf
 
 # Prepare docker containers
 mkdir -p ~/containers
@@ -110,7 +100,7 @@ git clone https://github.com/Saebasol/Heliotrope.git $sbs_subuser_home/container
 cp -f ./docker/Heliotrope/docker-compose.yml $sbs_subuser_home/containers/Heliotrope/docker-compose.yml
 
 # Re-apply perms
-chown -R $sbs_subuser_home:$sbs_subuser_home $sbs_subuser_home
+chown -R $sbs_subuser:$sbs_subuser $sbs_subuser_home
 
 # Start services
 sudo -u $sbs_subuser bash -c : && _runas="sudo -u $sbs_subuser"
