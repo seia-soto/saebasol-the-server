@@ -40,7 +40,7 @@ fi
 
 sbs_info "Grabbing config..."
 
-. ../config.sh
+. config.sh
 
 if [[ -z "$sbs_subuser" || -z "$sbs_email" || -z "$sbs_cf_key" ]]; then
   echo "ERROR: Please complete config.sh"
@@ -116,7 +116,7 @@ sed -i 's/#net.ipv6.conf.all.accept_redirects = 0/net.ipv6.conf.all.accept_redir
 sysctl -p
 sbs_info_sub "Setting up psad service..."
 service rsyslog restart
-cp -f ./config/psad.conf /etc/psad/psad.conf
+cp -f ./setup/config/psad.conf /etc/psad/psad.conf
 service psad restart
 psad --sig-update
 psad -H
@@ -157,14 +157,14 @@ sbs_info "Setting up docker services..."
 sbs_info_sub "Preparing dependencies..."
 mkdir -p ~/containers
 
-cp -r ../docker/database $sbs_subuser_home/containers
-cp -r ../docker/gateway $sbs_subuser_home/containers
+cp -r ./docker/database $sbs_subuser_home/containers
+cp -r ./docker/gateway $sbs_subuser_home/containers
 
 ln -s $sbs_subuser_home/.acme.sh $sbs_subuser_home/containers/certs
 
 sbs_info_sub "Preparing Saebasol/Heliotrope..."
 git clone https://github.com/Saebasol/Heliotrope.git $sbs_subuser_home/containers/Heliotrope
-cp -f ../docker/Heliotrope/docker-compose.yml $sbs_subuser_home/containers/Heliotrope/docker-compose.yml
+cp -f ./docker/Heliotrope/docker-compose.yml $sbs_subuser_home/containers/Heliotrope/docker-compose.yml
 
 sbs_info_sub "Applying permissions..."
 
