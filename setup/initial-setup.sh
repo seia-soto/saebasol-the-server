@@ -12,7 +12,7 @@ apt-get upgrade -y
 # Install packages
 DEBIAN_FRONTEND=noninteractive apt-get install -y git curl wget jq vim util-linux sudo \
   vnstat iftop iotop htop powertop \
-  psad unattended-upgrades ufw iptables-persistent rkhunter chkrootkit \
+  psad unattended-upgrades ufw iptables-persistent \
   apt-transport-https ca-certificates gnupg lsb-release
 
 # Install docker and docker-compose
@@ -31,10 +31,6 @@ ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 # Register subuser to docker group
 adduser "$sbs_subuser" docker
-
-# Update rkhunter
-rkhunter --update
-rkhunter --propupd
 
 # Set iptables rules
 iptables -A INPUT -i lo -j ACCEPT
