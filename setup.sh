@@ -119,3 +119,8 @@ $_runas bash<<EOF
 
   docker ps
 EOF
+
+# Remove stuffs
+apt autoremove -y
+cd
+rm -r ~/install

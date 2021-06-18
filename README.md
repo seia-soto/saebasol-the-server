@@ -15,5 +15,6 @@ After preparing a bare metal server, clone this repository and edit `config.sh`,
 ```bash
 git clone https://github.com/seia-soto/saebasol-the-server.git install
 cd install
+vi config.sh
 sudo bash setup.sh
 ```
