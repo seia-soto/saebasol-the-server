@@ -2,11 +2,11 @@
 
 set -e
 
-if id -u != 0; then
+if $(id -u) != 0; then
   echo "ERROR: To perform server setup, please run this script as root!"
   exit 1
 fi
-if test -f is_root != 0; then
+if $(test -f is_root) != 0; then
   echo "ERROR: To perform server setup, please run this script at the top level of git repository!"
   exit 1
 fi
@@ -28,10 +28,10 @@ Example:
 EOF
 }
 function sbs_info() {
-  echo "INFO: $*"
+  echo "INFO: $@"
 }
 function sbs_info_sub() {
-  echo " - $*"
+  echo " - $@"
 }
 
 if [[ "${1}" == '-h' || "${1}" == '--help' ]]; then
