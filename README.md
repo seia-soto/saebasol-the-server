@@ -13,7 +13,7 @@ Automated server configuration script of Heliotrope.
 After preparing a bare metal server, clone this repository and edit `config.sh`, then execute `setup/initial-setup.sh`.
 
 ```bash
-git clone https://github.com/seia-soto/saebasol-the-server.git
-cd seabasol-the-server
+git clone https://github.com/seia-soto/saebasol-the-server.git setup
+cd setup
 sudo bash setup/initial-setup.sh
 ```
