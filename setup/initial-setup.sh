@@ -10,7 +10,7 @@ apt-get update
 apt-get upgrade -y
 
 # Install packages
-apt-get install -y git curl wget jq vim util-linux sudo \
+DEBIAN_FRONTEND=noninteractive apt-get install -y git curl wget jq vim util-linux sudo \
   vnstat iftop iotop htop powertop \
   psad unattended-upgrades ufw iptables-persistent rkhunter chkrootkit
 
