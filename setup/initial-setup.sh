@@ -2,7 +2,7 @@
 
 set -e
 
-if ! [ $(id -u) = 0 ]; then
+if ! [ "${$(id -u) = 0}" ]; then
   echo "ERROR: To perform server setup, please run this script as root!"
   exit 1
 fi
@@ -28,10 +28,10 @@ Example:
 EOF
 }
 function sbs_info() {
-  echo "INFO: $@"
+  echo "INFO: $*"
 }
 function sbs_info_sub() {
-  echo " - $@"
+  echo " - $*"
 }
 
 if [[ "${1}" == '-h' || "${1}" == '--help' ]]; then
@@ -78,7 +78,7 @@ curl -L "https://github.com/docker/compose/releases/download/${sbs_var_compose_v
 chmod +x /usr/local/bin/docker-compose
 ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
-adduser $sbs_subuser docker
+adduser "$sbs_subuser" docker
 
 sbs_info "Setting up security services..."
 
@@ -137,7 +137,7 @@ apt-get install linux-xanmod -y
 sbs_info "Preparing certificates..."
 sbs_info_sub "*running as $sbs_subuser*"
 
-sudo -u $sbs_subuser bash -c : && _runas="sudo -u $sbs_subuser"
+sudo -u "$sbs_subuser" bash -c : && _runas="sudo -u $sbs_subuser"
 $_runas bash<<EOF
   # Certificates
   curl https://get.acme.sh | sh -s email=$sbs_email
