@@ -12,17 +12,17 @@ apt-get upgrade -y
 # Install packages
 DEBIAN_FRONTEND=noninteractive apt-get install -y git curl wget jq vim util-linux sudo \
   vnstat iftop iotop htop powertop \
-  psad unattended-upgrades ufw iptables-persistent rkhunter chkrootkit
+  psad unattended-upgrades ufw iptables-persistent rkhunter chkrootkit \
+  apt-transport-https ca-certificates gnupg lsb-release
 
 # Install docker and docker-compose
-apt-get install -y apt-transport-https ca-certificates gnupg lsb-release
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io
-
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo \
   "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io
 
 sbs_var_compose_version=$(curl -sL "https://api.github.com/repos/docker/compose/releases/latest" | jq --raw-output '.tag_name' | grep -Eo '[0-9]+.[0-9]+.[0-9]+')
 curl -L "https://github.com/docker/compose/releases/download/${sbs_var_compose_version}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
