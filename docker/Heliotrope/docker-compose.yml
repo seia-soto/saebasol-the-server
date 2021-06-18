@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  Heliotrope:
+    container_name: Heliotrope
+    build: .
+    restart: always
+    expose:
+      - 8000
+      - 8001
+    networks:
+      - saebasol
+
+networks:
+  saebasol:
+    external: true

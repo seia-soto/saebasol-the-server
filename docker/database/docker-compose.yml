@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  mariadb:
+    conntainer_name: database
+    image: mariadb:latest
+    restart: always
+    ports:
+      - 127.0.0.1:3306:3306
+    expose:
+      - 3306
+    volumes:
+      - ./data:/var/lib/mysql
+      - ./preferences:/etc/mysql/conf.d
+    environment:
+      MYSQL_ROOT_PASSWORD: "saebasol"
+      TZ: Asia/Seoul
+    networks:
+      - saebasol
+
+networks:
+  saebasol:
+    external: true
