@@ -3,7 +3,7 @@ version: "3.8"
 services:
   Heliotrope:
     container_name: Heliotrope
-    build: .
+    build: ./
     restart: always
     expose:
       - 8000

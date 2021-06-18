@@ -3,6 +3,9 @@
 # Load config
 . config.sh
 
+# Ensure the user
+adduser $sbs_subuser
+
 # Update
 apt-get update
 apt-get upgrade -y
@@ -89,7 +92,7 @@ echo "export CF_Key=\"$sbs_cf_key\"" >> $sbs_subuser_home/.acme.sh/account.conf
 echo "export CF_Email=\"$sbs_email\"" >> $sbs_subuser_home/.acme.sh/account.conf
 
 # Prepare docker containers
-mkdir -p ~/containers
+mkdir -p $sbs_subuser_home/containers
 
 cp -r ./docker/database $sbs_subuser_home/containers
 cp -r ./docker/gateway $sbs_subuser_home/containers
@@ -105,6 +108,8 @@ chown -R $sbs_subuser:$sbs_subuser $sbs_subuser_home
 # Start services
 sudo -u $sbs_subuser bash -c : && _runas="sudo -u $sbs_subuser"
 $_runas bash<<EOF
+  docker network create -d bridge saebasol
+
   cd ~/containers/database
   docker-compose up -d
   cd ~/containers/gateway
