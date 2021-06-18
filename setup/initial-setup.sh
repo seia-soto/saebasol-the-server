@@ -2,68 +2,19 @@
 
 set -e
 
-if $(id -u) != 0; then
-  echo "ERROR: To perform server setup, please run this script as root!"
-  exit 1
-fi
-if $(test -f is_root) != 0; then
-  echo "ERROR: To perform server setup, please run this script at the top level of git repository!"
-  exit 1
-fi
-
-function sbs_help() {
-  cat <<-'EOF'
-initial-setup.sh
-Scripts to setup Heliotrope in one line.
-
-Usage:
-  sh ./setup/initial-setup.sh
-
-  <subuser>     Subuser to run docker containers and services
-  -h, --help    Display this mKessage
-Example:
-  ./setup/initial-setup.sh saebasol user@domain.tld
-  ./setup/initial-setup.sh -h
-  ./setup/initial-setup.sh --help
-EOF
-}
-function sbs_info() {
-  echo "INFO: $@"
-}
-function sbs_info_sub() {
-  echo " - $@"
-}
-
-if [[ "${1}" == '-h' || "${1}" == '--help' ]]; then
-  sbs_help
-fi
-
-sbs_info "Grabbing config..."
-
+# Load config
 . config.sh
 
-if [[ -z "$sbs_subuser" || -z "$sbs_email" || -z "$sbs_cf_key" ]]; then
-  echo "ERROR: Please complete config.sh"
-  exit 1
-fi
-
-sbs_info "Fetching fresh upgrades from upstream repository..."
-
+# Update
 apt-get update
 apt-get upgrade -y
 
-sbs_info "Installing necessary packages..."
+# Install packages
+apt-get install -y git curl wget jq vim util-linux sudo \
+  vnstat iftop iotop htop powertop \
+  psad unattended-upgrades ufw iptables-persistent rkhunter chkrootkit
 
-sbs_info_sub "Installing server side utils..."
-apt-get install -y git curl wget jq vim utils-linux sudo
-
-sbs_info_sub "Installing benchmarking and stat utils..."
-apt-get install -y vnstat iftop iotop htop powertop
-
-sbs_info_sub "Installing security packages..."
-apt-get install -y psad unattended-upgrades ufw iptables-persistent rkhunter chkrootkit
-
-sbs_info_sub "Installing docker and docker-compose..."
+# Install docker and docker-compose
 apt-get install -y apt-transport-https ca-certificates gnupg lsb-release
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io
@@ -78,14 +29,14 @@ curl -L "https://github.com/docker/compose/releases/download/${sbs_var_compose_v
 chmod +x /usr/local/bin/docker-compose
 ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
+# Register subuser to docker group
 adduser "$sbs_subuser" docker
 
-sbs_info "Setting up security services..."
-
-sbs_info "Upgrading rkhunter..."
+# Update rkhunter
 rkhunter --update
 rkhunter --propupd
-sbs_info_sub "Setting up iptables rules..."
+
+# Set iptables rules
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
@@ -97,13 +48,13 @@ iptables -A OUTPUT -p tcp --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j A
 iptables -A INPUT -p tcp --sport 22 -m conntrack --ctstate ESTABLISHED -j ACCEPT
 iptables -A INPUT -p tcp -m multiport --dports 80,443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -p tcp -m multiport --dports 80,443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
-netfilter-persistent save
-sbs_info_sub "Setting up iptables to log for other IDS services..."
 iptables -A INPUT -j LOG
 iptables -A FORWARD -j LOG
 ip6tables -A INPUT -j LOG
 ip6tables -A FORWARD -j LOG
-sbs_info_sub "Setting up kernel parameters which enhances server security..."
+netfilter-persistent save
+
+# Set some kernel params
 sed -i 's/#net.ipv4.conf.default.rp_filter=1/net.ipv4.conf.default.rp_filter=1/' /etc/sysctl.conf
 sed -i 's/#net.ipv4.conf.all.rp_filter=1/net.ipv4.conf.all.rp_filter=1/' /etc/sysctl.conf
 sed -i 's/#net.ipv4.conf.all.accept_source_route = 0/net.ipv4.conf.all.accept_source_route = 0/' /etc/sysctl.conf
@@ -114,7 +65,8 @@ sed -i 's/#net.ipv4.conf.all.log_martians = 1/net.ipv4.conf.all.log_martians = 1
 sed -i 's/#net.ipv4.conf.all.accept_redirects = 0/net.ipv4.conf.all.accept_redirects = 0/' /etc/sysctl.conf
 sed -i 's/#net.ipv6.conf.all.accept_redirects = 0/net.ipv6.conf.all.accept_redirects = 0/' /etc/sysctl.conf
 sysctl -p
-sbs_info_sub "Setting up psad service..."
+
+# Setup psad
 service rsyslog restart
 cp -f ./setup/config/psad.conf /etc/psad/psad.conf
 service psad restart
@@ -123,20 +75,18 @@ psad -H
 psad -R
 psad --fw-analyze
 
-sbs_info "Starting and registering services to launch at boot..."
-service dockerd start
-service vnstatd start
+# Start services on boot
+service docker start
+service vnstat start
 systemctl enable docker vnstat iptables psad
 
-sbs_info "Installing xanmod to improve performance..."
+# Setup xanmod kernel
 echo 'deb http://deb.xanmod.org releases main' | sudo tee /etc/apt/sources.list.d/xanmod-kernel.list
 wget -qO - https://dl.xanmod.org/gpg.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/xanmod-kernel.gpg add -
 apt-get update
 apt-get install linux-xanmod -y
 
-sbs_info "Preparing certificates..."
-sbs_info_sub "*running as $sbs_subuser*"
-
+# Setup acme.sh
 sudo -u "$sbs_subuser" bash -c : && _runas="sudo -u $sbs_subuser"
 $_runas bash<<EOF
   # Certificates
@@ -152,9 +102,7 @@ $_runas bash<<EOF
   rm -f ~/.cronjobs
 EOF
 
-sbs_info "Setting up docker services..."
-
-sbs_info_sub "Preparing dependencies..."
+# Prepare docker containers
 mkdir -p ~/containers
 
 cp -r ./docker/database $sbs_subuser_home/containers
@@ -162,16 +110,13 @@ cp -r ./docker/gateway $sbs_subuser_home/containers
 
 ln -s $sbs_subuser_home/.acme.sh $sbs_subuser_home/containers/certs
 
-sbs_info_sub "Preparing Saebasol/Heliotrope..."
 git clone https://github.com/Saebasol/Heliotrope.git $sbs_subuser_home/containers/Heliotrope
 cp -f ./docker/Heliotrope/docker-compose.yml $sbs_subuser_home/containers/Heliotrope/docker-compose.yml
 
-sbs_info_sub "Applying permissions..."
-
+# Re-apply perms
 chown -R $sbs_subuser_home:$sbs_subuser_home $sbs_subuser_home
 
-sbs_info_sub "Starting services..."
-
+# Start services
 sudo -u $sbs_subuser bash -c : && _runas="sudo -u $sbs_subuser"
 $_runas bash<<EOF
   cd ~/containers/database
@@ -183,5 +128,3 @@ $_runas bash<<EOF
 
   docker ps
 EOF
-
-sbs_info "Done! Please reboot manually."
