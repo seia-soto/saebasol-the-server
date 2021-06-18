@@ -6,7 +6,7 @@ if ! [ $(id -u) = 0 ]; then
   echo "ERROR: To perform server setup, please run this script as root!"
   exit 1
 fi
-if ! [ test -f is_root ]; then
+if ! [ test -f ./is_root ]; then
   echo "ERROR: To perform server setup, please run this script at the top level of git repository!"
   exit 1
 fi
