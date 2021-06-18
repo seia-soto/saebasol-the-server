@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   mariadb:
-    conntainer_name: database
+    container_name: database
     image: mariadb:latest
     restart: always
     ports:
